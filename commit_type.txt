@@ -1,0 +1,13 @@
+🐛 fix
+⚡️ feat
+📝 docs
+🎨 style
+♻️ refactor
+🚀 perf
+🧪 test
+🔧 chore
+🗑 revert
+⚒️ build
+⚙️ ci
+✨ release
+🔥 initial
