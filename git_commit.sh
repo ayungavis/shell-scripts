@@ -1,5 +1,5 @@
 #!/bin/sh
-TYPE=$(gum choose "🐛 fix" "⚡️ feat" "📝 docs" "🎨 style" "♻️ refactor" "🚀 perf" "🧪 test" "🔧 chore" "🗑 revert" "⚒️ build" "⚙️ ci" "✨ release" "🔥 initial")
+TYPE=$(cat commit_type.txt | gum filter --limit 1)
 
 # Pre-populate the input with the type(scope): so that the user may change it
 SUMMARY=$(gum input --value "$TYPE: " --placeholder "Summary of this change")
