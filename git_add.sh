@@ -12,4 +12,4 @@ gum style --foreground 212 '=====[Git Status]=====' && git status
 gum style --foreground 212 '=====[Commit the staging files]=====' && ./git_commit.sh
 
 # Change the commit date
-gum confirm "Do you want to change the date?" && gum style --foreground 212 '=====[Change the commit date]=====' && ./git_change_commit_date.sh
+gum confirm "Do you want to change the date?" && gum style --foreground 212 '=====[Change the commit date]=====' && ~/programming/tranityproject/shell/git_change_commit_date.sh
