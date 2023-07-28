@@ -11,3 +11,4 @@
 ⚙️ ci
 ✨ release
 🔥 initial
+🌐 localization
