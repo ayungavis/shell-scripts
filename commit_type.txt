@@ -1,14 +1,11 @@
-🐛 fix
-⚡️ feat
-📝 docs
-🎨 style
-♻️ refactor
-🚀 perf
-🧪 test
-🔧 chore
-🗑 revert
-⚒️ build
-⚙️ ci
-✨ release
-🔥 initial
-🌐 localization
+feat
+fix
+refactor
+style
+chore
+ci
+build
+docs
+perf
+revert
+test
