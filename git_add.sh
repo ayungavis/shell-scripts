@@ -3,7 +3,7 @@
 FILES=$(gum choose --no-limit $(git status --porcelain | awk '{print $2}'))
 
 if [ -z "$FILES" ]; then
-  echo "No files selected, exiting."
+  echo "🚨 No files selected, exiting."
   exit 1
 fi
 
