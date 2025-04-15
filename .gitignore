@@ -5,4 +5,4 @@
 .env
 
 # Log files
-*.log
+/logs
