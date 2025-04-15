@@ -15,4 +15,4 @@ done
 gum confirm "Add these files?" && git add $FILES
 
 # Commit these changes
-./git_commit.sh
+sh ~/programming/tranity/shell/git_commit.sh
