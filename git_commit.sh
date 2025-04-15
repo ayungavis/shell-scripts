@@ -83,7 +83,14 @@ if gum confirm "Generate commit message with Gemini 2.5 AI?"; then
   fi
 
   # Compose the prompt including the diff details
-  PROMPT="Generate a concise and informative git commit message in the format type(scope): summary if a scope is provided or type: summary if not. The type must follow the conventional commit types: feat, fix, chore, docs, style, refactor, perf, test, build, ci, or revert.\n\nThese are the staged changes:\n\n $STAGED_DIFF"
+  PROMPT=$(cat <<EOF
+Generate a concise and informative git commit message in the format 'type(scope): summary' if a scope is provided or 'type: summary' if not.
+The type must follow the conventional commit types: feat, fix, chore, docs, style, refactor, perf, test, build, ci, or revert.
+Please respond with a single line commit message without any additional text or formatting.
+The commit message should be based on the following staged changes:
+$STAGED_DIFF
+EOF
+  )
 
   # Store the prompt in a log file for debugging
   LOG_DIR="logs"
