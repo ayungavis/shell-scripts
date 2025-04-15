@@ -1,12 +1,15 @@
 #!/bin/sh
-# Check if the .env file exists
-if [ ! -f .env ]; then
-  echo "🚨 Error: .env file not found. Please create a .env file with the required environment variables."
+# Determine the directory of the script
+SCRIPT_DIR=$(cd -- "$(dirname -- "$0")" && pwd)
+
+# Check if the .env file exists in the script's directory
+if [ ! -f "$SCRIPT_DIR/.env" ]; then
+  echo "🚨 Error: .env file not found in $SCRIPT_DIR. Please create a .env file with the required environment variables."
   exit 1
 fi
 
-# Load environment variables from .env file
-export $(grep -v '^#' .env | xargs)
+# Load environment variables from the .env file in the script's directory
+export $(grep -v '^#' "$SCRIPT_DIR/.env" | xargs)
 
 # Function to handle manual input for commit message
 manual_commit_input() {
@@ -50,36 +53,68 @@ extract_generated_text() {
   echo $(echo "$summary" | tr '[:upper:]' '[:lower:]')
 }
 
+# Function to generate logs based on the current day
+create_daily_log_file() {
+  local log_type="$1" # Type of log: "prompt" or "api-response"
+  local current_date=$(date '+%Y-%m-%d')
+  local log_dir=""
+  local log_file=""
+
+  # Determine the log directory and file name based on the log type
+  if [ "$log_type" = "prompt" ]; then
+    log_dir="$SCRIPT_DIR/logs/prompts"
+    log_file="$log_dir/prompts-$current_date.log"
+  elif [ "$log_type" = "api-response" ]; then
+    log_dir="$SCRIPT_DIR/logs/api-responses"
+    log_file="$log_dir/api-response-$current_date.log"
+  else
+    echo "🚨 Error: Invalid log type specified. Use 'prompt' or 'api-response'."
+    return 1
+  fi
+
+  # Create the log directory if it doesn't exist
+  if [ ! -d "$log_dir" ]; then
+    mkdir -p "$log_dir"
+  fi
+
+  # Create the log file if it doesn't exist
+  if [ ! -f "$log_file" ]; then
+    touch "$log_file"
+  fi
+
+  echo "$log_file"
+}
+
+# Ensure the correct git diff command is used
+if ! command -v git >/dev/null 2>&1; then
+  echo "🚨 Error: Git is not installed or not available in the PATH."
+  exit 1
+fi
+
+# Ensure the script is executed in the root of the Git repository
+if ! git rev-parse --show-toplevel >/dev/null 2>&1; then
+  echo "🚨 Error: Not inside a Git repository. Please navigate to a Git repository and try again."
+  exit 1
+fi
+
+# Navigate to the root of the Git repository
+cd $(git rev-parse --show-toplevel)
+
+# Read the staged file changes explicitly using git diff
+STAGED_DIFF=$(git diff --cached)
+
+# Check if there are staged changes
+if [ -z "$STAGED_DIFF" ]; then
+  echo "🚨 No staged changes detected. Add files to staged changes first!"
+  exit 0
+fi
+
 # Ask if you want AI to generate the commit message
 if gum confirm "Generate commit message with Gemini 2.5 AI?"; then
   # Check if the GEMINI_API_KEY environment variable is set
   if [ -z "${GEMINI_API_KEY}" ]; then
     echo "🚨 Error: GEMINI_API_KEY is not set. Please set it in your .env file or environment variables."
     exit 1
-  fi
-
-  # Ensure the correct git diff command is used
-  if ! command -v git >/dev/null 2>&1; then
-    echo "🚨 Error: Git is not installed or not available in the PATH."
-    exit 1
-  fi
-
-  # Ensure the script is executed in the root of the Git repository
-  if ! git rev-parse --show-toplevel >/dev/null 2>&1; then
-    echo "🚨 Error: Not inside a Git repository. Please navigate to a Git repository and try again."
-    exit 1
-  fi
-
-  # Navigate to the root of the Git repository
-  cd $(git rev-parse --show-toplevel)
-
-  # Read the staged file changes explicitly using git diff
-  STAGED_DIFF=$(git diff --cached)
-  
-  # Check if there are staged changes
-  if [ -z "$STAGED_DIFF" ]; then
-    echo "🚨 No staged changes detected. Add files to staged changes first!"
-    exit 0
   fi
 
   # Compose the prompt including the diff details
@@ -93,11 +128,7 @@ EOF
   )
 
   # Store the prompt in a log file for debugging
-  LOG_DIR="logs"
-  [ ! -d "$LOG_DIR" ] && mkdir -p "$LOG_DIR"
-  LOG_FILE="$LOG_DIR/prompt.log"
-  [ ! -f "$LOG_FILE" ] && touch "$LOG_FILE"
-
+  LOG_FILE=$(create_daily_log_file "prompt")
   TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
   echo "$TIMESTAMP - Prompt: $PROMPT" >> "$LOG_FILE"
 
@@ -107,7 +138,7 @@ EOF
     local spinstr='|/-\'
     while true; do
       for c in $(echo "$spinstr" | fold -w1); do
-        printf "\r⏳Generating commit message with Gemini 2.5 AI ($TIMESTAMP)...  %s" "$c"
+        printf "\r⏳ Generating commit message with Gemini 2.5 AI ($TIMESTAMP)...  %s" "$c"
         sleep "$delay"
       done
     done
@@ -139,8 +170,7 @@ EOF
   wait "$SPINNER_PID" 2>/dev/null
 
   # Log the API response for debugging
-  LOG_FILE="$LOG_DIR/api_response.log"
-  [ ! -f "$LOG_FILE" ] && touch "$LOG_FILE"
+  LOG_FILE=$(create_daily_log_file "api-response")
   echo "$TIMESTAMP - API Response: $AI_RESPONSE" >> "$LOG_FILE"
 
   # Check if the API call was successful
