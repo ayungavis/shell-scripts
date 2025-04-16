@@ -196,7 +196,7 @@ EOF
 
   # Extract the generated text
   SUMMARY=$(extract_generated_text "$CLEANED_AI_RESPONSE")
-  echo "✨ Gemini 2.5-generated commit message:"
+  echo "\n✨ Gemini 2.5-generated commit message:"
   echo "$SUMMARY"
 
   # Allow editing the message
